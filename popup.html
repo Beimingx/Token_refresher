@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  body { font-family: Arial, sans-serif; width: 200px; padding: 10px; }
+  input { width: 60px; }
+  #status { margin-top: 6px; font-size: 12px; }
+</style>
+</head>
+<body>
+  <div>
+    <label>刷新间隔(小时)：
+      <input id="hours" type="number" min="1" max="24" />
+    </label>
+  </div>
+  <button id="save">保存</button>
+  <div id="status"></div>
+  <div style="margin-top:10px;">
+    <ul id="account_list" style="padding-left:0;list-style:none;"></ul>
+  </div>
+  <div style="margin-top:10px;">
+    <div>当前 token: <span id="current_token">-</span></div>
+    <div>上次更新时间: <span id="update_time">-</span></div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

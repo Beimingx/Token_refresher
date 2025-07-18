@@ -1,0 +1,39 @@
+{
+  "name": "Aliyun SEC_TOKEN Auto Refresher",
+  "description": "定时抓取 https://home.console.aliyun.com 的 SEC_TOKEN 并写入 aliyun 页面。",
+  "version": "1.0.0",
+  "manifest_version": 3,
+
+  "permissions": ["storage", "alarms", "tabs", "scripting"],
+  "host_permissions": [
+    "https://home.console.aliyun.com/*",
+    "http://my.console.aliyun.com:3333/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://home.console.aliyun.com/*"],
+      "js": ["content-home.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "http://my.console.aliyun.com:3333/*",
+        "http://localhost:3333/*",
+        "http://127.0.0.1:3333/*",
+        "https://pre-saenext.console.aliyun.com/overview"
+      ],
+      "js": ["content-business.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "action": {
+    "default_title": "Token Refresher",
+    "default_popup": "popup.html"
+  }
+}
