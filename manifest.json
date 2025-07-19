@@ -10,6 +10,11 @@
     "http://my.console.aliyun.com:3333/*"
   ],
 
+  "custom_url_patterns": [
+    "http://my.console.aliyun.com:3333/*",
+    "https://pre-saenext.console.aliyun.com/*"
+  ],
+
   "background": {
     "service_worker": "background.js"
   },
@@ -23,9 +28,7 @@
     {
       "matches": [
         "http://my.console.aliyun.com:3333/*",
-        "http://localhost:3333/*",
-        "http://127.0.0.1:3333/*",
-        "https://pre-saenext.console.aliyun.com/overview"
+        "https://pre-saenext.console.aliyun.com/*"
       ],
       "js": ["content-business.js"],
       "run_at": "document_idle"

@@ -58,11 +58,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     chrome.storage.local.set({ CURRENT_TOKEN: token, CURRENT_TOKEN_TIME: Date.now() });
     console.log('[Aliyun-Token] new SEC_TOKEN =', token);
 
-    // 广播给所有业务页；忽略 “Receiving end” 错误
-    const BROADCAST_URL_PATTERNS = [
-      'http://my.console.aliyun.com:3333/overview',
-      'https://pre-saenext.console.aliyun.com/overview'
-    ];
+    // 广播给所有业务页
+    const manifest = chrome.runtime.getManifest();
+    const BROADCAST_URL_PATTERNS = manifest.custom_url_patterns || [];
     BROADCAST_URL_PATTERNS.forEach(pattern => {
       chrome.tabs.query({ url: pattern }, tabs => {
         tabs.forEach(t => {
