@@ -50,6 +50,12 @@ function openHiddenTabToFetchToken () {
 // 合并 onMessage 监听，避免误关用户 tab
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'SEC_TOKEN' && msg.token) {
+    // 只关闭插件自动打开的 tab
+    if (sender.tab && fetchTabs[sender.tab.id]) {
+      chrome.tabs.remove(sender.tab.id);
+      delete fetchTabs[sender.tab.id];
+    }
+
     const token = msg.token;
     // 同一个 token 不必再处理
     if (token === lastToken) return;
@@ -72,18 +78,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         });
       });
     });
-
-    // 只关闭插件自动打开的 tab
-    if (sender.tab && fetchTabs[sender.tab.id]) {
-      chrome.tabs.remove(sender.tab.id);
-      delete fetchTabs[sender.tab.id];
-    }
   }
   if (msg.type === 'REQUEST_TOKEN') {
     openHiddenTabToFetchToken();
   }
 });
-
 
 /* alarm 触发 → 打开隐藏 tab 去取新 token */
 chrome.alarms.onAlarm.addListener(alarm => {
