@@ -20,15 +20,23 @@ document.getElementById('save').addEventListener('click', () => {
   });
 });
 
-// 显示当前 token 和更新时间
-chrome.storage.local.get(['CURRENT_TOKEN'], ({ CURRENT_TOKEN }) => {
-  const $token = document.getElementById('current_token');
+// 显示当前 token
+const $token = document.getElementById('current_token');
+chrome.storage.local.get('CURRENT_TOKEN', ({ CURRENT_TOKEN }) => {
   if ($token) {
-    $token.textContent = CURRENT_TOKEN || '无';
+    $token.textContent = '当前 token：' + (CURRENT_TOKEN || '无');
   }
-  const $update = document.getElementById('update_time');
-  if ($update) {
-    const t = localStorage.getItem('sec_token_update_time');
-    $update.textContent = t ? new Date(Number(t)).toLocaleString() : '未知';
+});
+
+// 显示 token 上次更新时间
+const $tokenTime = document.getElementById('token_time');
+chrome.storage.local.get('CURRENT_TOKEN_TIME', ({ CURRENT_TOKEN_TIME }) => {
+  if ($tokenTime) {
+    if (CURRENT_TOKEN_TIME) {
+      const date = new Date(Number(CURRENT_TOKEN_TIME));
+      $tokenTime.textContent = 'Token上次更新时间：' + date.toLocaleString();
+    } else {
+      $tokenTime.textContent = 'Token上次更新时间：无';
+    }
   }
 });

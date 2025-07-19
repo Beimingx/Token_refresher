@@ -55,7 +55,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (token === lastToken) return;
 
     lastToken = token;
-    chrome.storage.local.set({ CURRENT_TOKEN: token });
+    chrome.storage.local.set({ CURRENT_TOKEN: token, CURRENT_TOKEN_TIME: Date.now() });
     console.log('[Aliyun-Token] new SEC_TOKEN =', token);
 
     // 广播给所有业务页；忽略 “Receiving end” 错误
