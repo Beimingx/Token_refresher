@@ -1,42 +1,61 @@
 {
   "name": "Aliyun SEC_TOKEN Auto Refresher",
-  "description": "定时抓取 https://home.console.aliyun.com 的 SEC_TOKEN 并写入 aliyun 页面。",
+  "description": "定时抓取 SEC_TOKEN 和 Cookie 自动注入页面",
   "version": "1.0.0",
   "manifest_version": 3,
-
-  "permissions": ["storage", "alarms", "tabs", "scripting"],
+  "permissions": [
+    "storage",
+    "alarms",
+    "tabs",
+    "scripting",
+    "cookies"
+  ],
   "host_permissions": [
     "https://home.console.aliyun.com/*",
-    "http://my.console.aliyun.com:3333/*"
-  ],
-
-  "custom_url_patterns": [
     "http://my.console.aliyun.com:3333/*",
-    "https://pre-saenext.console.aliyun.com/*"
+    "http://localhost:3333/*",
+    "http://localhost:3334/*",
+    "https://*.aliyun.com/*"
   ],
-
+  "token_only_url_patterns": [
+    "http://my.console.aliyun.com:3333/*",
+    "https://pre-saenext.console.aliyun.com/*",
+    "http://localhost:3333/*"
+  ],
+  "token_cookie_url_patterns": [
+    "http://localhost:3334/*",
+    "http://my.console.aliyun.com:3334/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
-
   "content_scripts": [
     {
-      "matches": ["https://home.console.aliyun.com/*"],
-      "js": ["content-home.js"],
+      "matches": [
+        "https://home.console.aliyun.com/*"
+      ],
+      "js": [
+        "content-home.js"
+      ],
       "run_at": "document_start"
     },
     {
       "matches": [
         "http://my.console.aliyun.com:3333/*",
-        "https://pre-saenext.console.aliyun.com/*"
+        "http://my.console.aliyun.com:3334/*",
+        "https://pre-saenext.console.aliyun.com/*",
+        "http://localhost:3333/*",
+        "http://localhost:3334/*"
       ],
-      "js": ["content-business.js"],
-      "run_at": "document_idle"
+      "js": [
+        "content-business.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
     }
   ],
-
   "action": {
-    "default_title": "Token Refresher",
+    "default_title": "Refresher",
     "default_popup": "popup.html"
   }
 }

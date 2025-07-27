@@ -1,5 +1,6 @@
 /*
   运行环境：content script（隔离世界）。
+  功能：获取token
   思路：不注入任何 <script>，而是遍历当前文档里所有 <script> 标签的 textContent，
         用正则把 SEC_TOKEN 拿出来，绕过 CSP。
 */

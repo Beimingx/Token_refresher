@@ -29,14 +29,14 @@ chrome.storage.local.get('CURRENT_TOKEN', ({ CURRENT_TOKEN }) => {
 });
 
 // 显示 token 上次更新时间
-const $tokenTime = document.getElementById('token_time');
+const $tokenTime = document.getElementById('refresh_time');
 chrome.storage.local.get('CURRENT_TOKEN_TIME', ({ CURRENT_TOKEN_TIME }) => {
   if ($tokenTime) {
     if (CURRENT_TOKEN_TIME) {
       const date = new Date(Number(CURRENT_TOKEN_TIME));
-      $tokenTime.textContent = 'Token上次更新时间：' + date.toLocaleString();
+      $tokenTime.textContent = '上次更新时间：' + date.toLocaleString();
     } else {
-      $tokenTime.textContent = 'Token上次更新时间：无';
+      $tokenTime.textContent = '上次更新时间：无';
     }
   }
 });
