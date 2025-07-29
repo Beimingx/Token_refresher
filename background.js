@@ -147,7 +147,7 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
       chrome.storage.local.set({ CURRENT_TOKEN: msg.token, CURRENT_TOKEN_TIME: Date.now() });
       console.log('[Aliyun-Token] new SEC_TOKEN =', msg.token);
       broadcastToken(msg.token);
-      fetchResourceCenterCookie();                       // 同步 Cookie
+      fetchResourceCenterCookie();
     }
     return;
   }
@@ -166,4 +166,6 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
 /* -------------------- alarm 触发 -------------------- */
 chrome.alarms.onAlarm.addListener(alarm => {
   if (alarm.name === ALARM_NAME) openHiddenTabToFetchToken();
+  fetchResourceCenterCookie();
+  console.log('[Aliyun-Token] alarm triggered, fetching new token and cookie');
 });

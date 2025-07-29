@@ -37,9 +37,7 @@ if (!localStorage.getItem('sec_token') || isTokenExpired()) {
     /* ① chrome.storage.local 有且未过期 → 直接写入并刷新 */
     if (res.CURRENT_TOKEN && res.CURRENT_TOKEN_TIME && !isTimestampExpired(res.CURRENT_TOKEN_TIME)) {
       writeToken(res.CURRENT_TOKEN);      // 内部会调用 scheduleReload()
-    }
-
-    /* ② 仍然缺失或过期 → 向后台请求新 token */
+    }/* ② 仍然缺失或过期 → 向后台请求新 token */
     else {
       chrome.runtime.sendMessage({ type: 'REQUEST_TOKEN' });
       console.log('[Aliyun-Token] 未检测到有效 token，已请求后台刷新');
