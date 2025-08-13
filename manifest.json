@@ -19,7 +19,6 @@
   ],
   "token_only_url_patterns": [
     "http://my.console.aliyun.com:3333/*",
-    "https://pre-saenext.console.aliyun.com/*",
     "http://localhost:3333/*"
   ],
   "token_cookie_url_patterns": [
@@ -43,7 +42,6 @@
       "matches": [
         "http://my.console.aliyun.com:3333/*",
         "http://my.console.aliyun.com:3334/*",
-        "https://pre-saenext.console.aliyun.com/*",
         "http://localhost:3333/*",
         "http://localhost:3334/*"
       ],
