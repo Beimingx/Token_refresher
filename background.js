@@ -1,7 +1,9 @@
 /* -------------------- 常量 -------------------- */
 const DEFAULT_INTERVAL_HOURS = 4;          // 默认 4 小时刷新一次
 const ALARM_NAME             = 'refreshToken';
+const VALIDATION_ALARM_NAME  = 'validateToken';   // token验证定时器
 const TOKEN_URL              = 'https://home.console.aliyun.com/home/dashboard/ProductAndService?tokenfetch=1';
+const VALIDATION_INTERVAL_MINUTES = 30;    // 每30分钟验证一次token有效性
 
 /* -------------------- 定时及安装逻辑 -------------------- */
 async function getIntervalHours () {
@@ -15,9 +17,17 @@ function scheduleAlarm (hours) {
   });
 }
 
+function scheduleValidationAlarm () {
+  chrome.alarms.clear(VALIDATION_ALARM_NAME, () => {
+    chrome.alarms.create(VALIDATION_ALARM_NAME, { periodInMinutes: VALIDATION_INTERVAL_MINUTES });
+    console.log('[Aliyun-Token] validation alarm scheduled every', VALIDATION_INTERVAL_MINUTES, 'minutes');
+  });
+}
+
 (async () => {
   const hrs = await getIntervalHours();
   scheduleAlarm(hrs);
+  scheduleValidationAlarm();        // 启动token验证定时器
   fetchResourceCenterCookie();      // 启动即同步一次 Cookie
 })();
 
@@ -32,12 +42,60 @@ chrome.storage.onChanged.addListener(ch => {
 let fetchTabs   = {};
 let lastToken   = null;
 let lastCookie  = null;
+let retryCount  = 0;
+const MAX_RETRY = 3;
+
+/* -------------------- Token 验证和刷新 -------------------- */
+async function validateToken () {
+  const { CURRENT_TOKEN, CURRENT_TOKEN_TIME } = await chrome.storage.local.get(['CURRENT_TOKEN', 'CURRENT_TOKEN_TIME']);
+  
+  if (!CURRENT_TOKEN) {
+    console.log('[Aliyun-Token] No token found, requesting new token');
+    openHiddenTabToFetchToken();
+    return;
+  }
+
+  // 检查token是否快过期（提前30分钟刷新）
+  const tokenAge = Date.now() - (CURRENT_TOKEN_TIME || 0);
+  const almostExpired = tokenAge > (3.5 * 60 * 60 * 1000); // 3.5小时
+  
+  if (almostExpired) {
+    console.log('[Aliyun-Token] Token is about to expire, refreshing proactively');
+    openHiddenTabToFetchToken();
+    return;
+  }
+
+  // 使用一个简单的API验证token有效性
+  try {
+    const response = await fetch('https://ecs.console.aliyun.com/server/region/cn-hangzhou', {
+      method: 'HEAD',
+      credentials: 'include'
+    });
+    
+    if (response.status === 401 || response.status === 403) {
+      console.log('[Aliyun-Token] Token validation failed, refreshing token');
+      openHiddenTabToFetchToken();
+    } else {
+      console.log('[Aliyun-Token] Token validation passed');
+    }
+  } catch (error) {
+    console.log('[Aliyun-Token] Token validation request failed:', error);
+  }
+}
 
 /* -------------------- 打开后台隐藏页以抓取 TOKEN -------------------- */
 function openHiddenTabToFetchToken () {
+  // 防止过度重试
+  if (retryCount >= MAX_RETRY) {
+    console.log('[Aliyun-Token] Max retry attempts reached, waiting for next scheduled refresh');
+    retryCount = 0;
+    return;
+  }
+  
   chrome.tabs.create({ url: TOKEN_URL, active: false }, tab => {
     fetchTabs[tab.id] = true;
-    console.log('[Aliyun-Token] opened hidden tab id', tab.id);
+    retryCount++;
+    console.log('[Aliyun-Token] opened hidden tab id', tab.id, 'retry count:', retryCount);
   });
 }
 
@@ -144,6 +202,7 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
     }
     if (msg.token !== lastToken) {
       lastToken = msg.token;
+      retryCount = 0; // 重置重试计数器
       chrome.storage.local.set({ CURRENT_TOKEN: msg.token, CURRENT_TOKEN_TIME: Date.now() });
       console.log('[Aliyun-Token] new SEC_TOKEN =', msg.token);
       broadcastToken(msg.token);
@@ -161,11 +220,22 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
   /* 业务页主动请求 TOKEN / COOKIE */
   if (msg.type === 'REQUEST_TOKEN')  openHiddenTabToFetchToken();
   if (msg.type === 'REQUEST_COOKIE') fetchResourceCenterCookie();
+  
+  /* 业务页报告token失效 */
+  if (msg.type === 'TOKEN_EXPIRED') {
+    console.log('[Aliyun-Token] Business page reported token expired, refreshing immediately');
+    openHiddenTabToFetchToken();
+  }
 });
 
 /* -------------------- alarm 触发 -------------------- */
 chrome.alarms.onAlarm.addListener(alarm => {
-  if (alarm.name === ALARM_NAME) openHiddenTabToFetchToken();
-  fetchResourceCenterCookie();
-  console.log('[Aliyun-Token] alarm triggered, fetching new token and cookie');
+  if (alarm.name === ALARM_NAME) {
+    openHiddenTabToFetchToken();
+    fetchResourceCenterCookie();
+    console.log('[Aliyun-Token] regular alarm triggered, fetching new token and cookie');
+  } else if (alarm.name === VALIDATION_ALARM_NAME) {
+    validateToken();
+    console.log('[Aliyun-Token] validation alarm triggered');
+  }
 });
